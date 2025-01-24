@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ShaderGraphGrid_01_Mat
-  m_Shader: {fileID: -6465566751694194690, guid: b8d7679189d4a5940af46004f3870920,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: b8d7679189d4a5940af46004f3870920, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -87,7 +86,7 @@ Material:
     - Vector1_5B05FA1F: 0.062
     - Vector1_6B67A8FF: -20
     - Vector1_7810F718: 1
-    - Vector1_B6126E6E: 0.335
+    - Vector1_B6126E6E: 1
     - Vector1_CA7D5F3: 30
     - Vector1_D5FBE925: 0.3
     - Vector1_F2A922B4: 1.73
@@ -116,7 +115,6 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &1113666550958969517
 MonoBehaviour:
   m_ObjectHideFlags: 11
