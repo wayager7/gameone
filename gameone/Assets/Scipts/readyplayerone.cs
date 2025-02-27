@@ -1,12 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class readyplayerone : MonoBehaviour
 {
+    //
     public float moveSpeed = 5f; // Vitesse de déplacement
     public float jumpHeight = 2f; // Hauteur du saut
-    public float downHeight = -1f; // descente pour baisser
+
+    //imput var
+    public KeyCode FastAttack = KeyCode.J;
+    public KeyCode ScapeAttack = KeyCode.K;
+    public KeyCode FinalAttack = KeyCode.I;
+    public KeyCode AnswereAttack = KeyCode.L;
+
+    //
     private bool isGrounded = true; // Pour vérifier si le personnage est au sol
     private float initialY; // Position initiale en Y pour gérer le saut
 
@@ -17,10 +26,11 @@ public class readyplayerone : MonoBehaviour
         initialY = transform.position.y;
     }
 
+
     // Update is called once per frame
     void Update()
     {
-        // mouvement
+        // déplacement
         // Déplacement gauche/droite
         float horizontal = Input.GetAxis("Horizontal"); // Flèches gauche/droite
         transform.position += new Vector3(horizontal * moveSpeed * Time.deltaTime, 0f, 0f);
@@ -43,16 +53,8 @@ public class readyplayerone : MonoBehaviour
             }
         }
 
-        //// Se baisser
-        //if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-        //{
-        //    transform.position += new Vector3(0f, downHeight);
-        //    //isGrounded = false; // Le personnage est en l'air après un saut
-        //}
-        ////else
-        ////{
-        ////    transform.position += new Vector3(downHeight, 0f);
-        ////}
+
+        // action
     }
 }
 
