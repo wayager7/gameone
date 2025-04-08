@@ -7,6 +7,8 @@ public class player2 : MonoBehaviour
     public Transform target; // The object to follow
     public float speed = 5f; // Speed of following
     public float stoppingDistance = 1f; // Distance to maintain from the target
+    public byte life = 200;
+    public byte attack = 10;
 
     void Update()
     {
@@ -20,6 +22,9 @@ public class player2 : MonoBehaviour
             {
                 transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
             }
+        }
+        if (life == 0) { 
+            
         }
     }
 }
