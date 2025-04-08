@@ -1,78 +1,65 @@
-using System.Collections;
-using System.Collections.Generic;
+Ôªøusing System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class barredevie : MonoBehaviour
 {
-    public byte life = 200;
-    public byte attack = 10;
-    public Transform target;
-    public float damageDistance = 3f;
-    public float attackCooldown = 1f;
+    [Header("Param√®tres de Sant√©")]
+    [SerializeField] private byte maxLife = 200;
+    [SerializeField] private byte currentLife;
 
-    [Header("Effets de dÈg‚ts")]
-    public float recoilForce = 0.3f; // Force du recul
-    public float shakeIntensity = 0.1f; // IntensitÈ du tremblement
-    public float shakeDuration = 0.2f; // DurÈe du tremblement
+    [Header("Effets de D√©g√¢ts")]
+    [SerializeField] private float recoilForce = 0.5f;
+    [SerializeField] private float shakeIntensity = 0.1f;
+    [SerializeField] private float shakeDuration = 0.2f;
 
-    private float currentCooldown;
+    [Header("R√©f√©rences")]
+    [SerializeField] private Transform target;
+    [SerializeField] private Image healthBarImage;
+
     private Vector3 originalPosition;
     private bool isShaking = false;
 
-    void Update()
+    void Start()
     {
-        if (target == null) return;
+        currentLife = maxLife;
+        UpdateHealthUI();
+        Debug.Log($"<color=cyan>[SANTE]</color> Initialisation de {gameObject.name} : {currentLife}/{maxLife} PV");
+    }
 
-        float distance = Vector3.Distance(transform.position, target.position);
+    public byte GetCurrentLife() => currentLife;
 
-        if (distance <= damageDistance)
+    public void TakeDamage(byte damage)
+    {
+        byte previousLife = currentLife;
+        currentLife = (byte)Mathf.Clamp(currentLife - damage, 0, maxLife);
+
+        Debug.Log(
+            $"<color=orange>[DEGATS]</color> {gameObject.name}\n" +
+            $"D√©g√¢ts re√ßus: <color=red>{damage}</color>\n" +
+            $"PV: {previousLife} ‚Üí <color=green>{currentLife}/{maxLife}</color>"
+        );
+
+        ApplyRecoil();
+        StartCoroutine(ShakeEffect());
+        UpdateHealthUI();
+
+        if (currentLife == 0) Die();
+    }
+
+    private void ApplyRecoil()
+    {
+        if (target != null)
         {
-            if (currentCooldown <= 0f)
-            {
-                ApplyDamage();
-                currentCooldown = attackCooldown;
-            }
-            else
-            {
-                currentCooldown -= Time.deltaTime;
-            }
-        }
-        else
-        {
-            currentCooldown = 0f;
+            Vector3 recoilDirection = (transform.position - target.position).normalized;
+            transform.position += recoilDirection * recoilForce;
         }
     }
 
-    void ApplyDamage()
+    private IEnumerator ShakeEffect()
     {
-        life = (byte)Mathf.Clamp(life - attack, 0, 200);
+        if (isShaking) yield break;
 
-        // Effet de recul
-        RecoilEffect();
-
-        // Effet de tremblement
-        if (!isShaking)
-        {
-            StartCoroutine(ShakeEffect());
-        }
-
-        Debug.Log("Vie restante: " + life);
-
-        if (life == 0)
-        {
-            Debug.Log("Le sujet est mort!");
-        }
-    }
-
-    void RecoilEffect()
-    {
-        // Calcul de la direction opposÈe ‡ la cible
-        Vector3 recoilDirection = (transform.position - target.position).normalized;
-        transform.position += recoilDirection * recoilForce;
-    }
-
-    IEnumerator ShakeEffect()
-    {
         isShaking = true;
         originalPosition = transform.position;
         float elapsed = 0f;
@@ -80,19 +67,30 @@ public class barredevie : MonoBehaviour
         while (elapsed < shakeDuration)
         {
             elapsed += Time.deltaTime;
-
-            // GÈnËre un dÈplacement alÈatoire
             Vector3 randomOffset = new Vector3(
                 Random.Range(-shakeIntensity, shakeIntensity),
                 Random.Range(-shakeIntensity, shakeIntensity),
                 0
             );
-
             transform.position = originalPosition + randomOffset;
             yield return null;
         }
 
         transform.position = originalPosition;
         isShaking = false;
+    }
+
+    private void UpdateHealthUI()
+    {
+        if (healthBarImage != null)
+        {
+            healthBarImage.fillAmount = (float)currentLife / maxLife;
+        }
+    }
+
+    private void Die()
+    {
+        Debug.Log($"<color=red>[MORT]</color> {gameObject.name} est hors combat !");
+        // Ajouter logique de mort ici
     }
 }
