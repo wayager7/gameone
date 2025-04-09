@@ -4,45 +4,30 @@ using UnityEngine;
 
 public class camfollow : MonoBehaviour
 {
-    public Transform A;
-    public Transform B;
-    public Transform C;
-    public float minDistance = 7f; // Distance minimale entre C et A/B
+    public Transform player1;
+    public Transform player2;
+    public float height = 4f;          
+    public float baseDistance = 2f;    
+    public float zoomFactor = 1.5f;    
+    public float minDistance = 5f;     
+    public float maxDistance = 15f;    
+    public float smoothTime = 0.3f;    
 
-    private float AB;
-    private float BC;
-    private float CA;
+    private Vector3 velocity = Vector3.zero;
 
-    // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-        if (A != null && B != null && C != null)
-        {
-            // Calcul de la distance entre A et B
-            float AB = Vector3.Distance(A.position, B.position) + 5f;
+        Vector3 midpoint = (player1.position + player2.position) * 0.5f;
+        float playersDistance = Vector3.Distance(player1.position, player2.position);
+        float desiredDistance = Mathf.Clamp(baseDistance + playersDistance * zoomFactor, minDistance, maxDistance);
 
-            // Vérifier si la distance AB est trop petite
-            float effectiveDistance = Mathf.Max(AB, minDistance);
+        // Positionnement de la caméra
+        Vector3 desiredPosition = midpoint
+                                + Vector3.up * height
+                                - Vector3.forward * desiredDistance;
 
-            // Trouver le point milieu entre A et B
-            Vector3 midpoint = (A.position + B.position) / 2f;
-
-            // Calculer la direction perpendiculaire au segment AB
-            Vector3 direction = (B.position + A.position).normalized;
-            Vector3 perpendicular; // Déclaration correcte
-
-            // Vérifier si B est "à droite" de A (dans l'axe X, par exemple)
-            if (B.position.x > A.position.x)
-            {
-                perpendicular = new Vector3(-direction.z, 0, direction.x); // Perpendiculaire dans XZ
-            }
-            else
-            {
-                perpendicular = new Vector3(direction.z, 0, -direction.x); // Inverser la perpendiculaire
-            }
-
-            // Placer C à une distance contrôlée du milieu de AB
-            C.position = midpoint + perpendicular * (effectiveDistance / 2f);
-        }
+        // Lissage du mouvement
+        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, smoothTime);
+        transform.LookAt(midpoint);
     }
 }
