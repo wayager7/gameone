@@ -7,43 +7,46 @@ using TMPro;
 public class UIManager : MonoBehaviour
 {
     [Header("Références")]
-    [SerializeField] private barredevie enemyHealth;
+    [SerializeField] private barredevie enemyHealth; // Garde le nom original
     [SerializeField] private Slider healthSlider;
     [SerializeField] private TMP_Text healthText;
     [SerializeField] private GameObject damagePopupPrefab;
 
-    void Start()
+    private void OnEnable()
     {
-        // Abonne-toi aux événements de santé
+        // Utilise les événements de barredevie
         enemyHealth.OnHealthChanged.AddListener(UpdateHealthUI);
         enemyHealth.OnDamageTaken.AddListener(ShowDamagePopup);
     }
 
-    void UpdateHealthUI(byte current, byte max)
+    private void OnDisable()
     {
-        // Met à jour la barre de vie
+        enemyHealth.OnHealthChanged.RemoveListener(UpdateHealthUI);
+        enemyHealth.OnDamageTaken.RemoveListener(ShowDamagePopup);
+    }
+
+    private void UpdateHealthUI(byte current, byte max)
+    {
         healthSlider.maxValue = max;
         healthSlider.value = current;
-
-        // Met à jour le texte
         healthText.text = $"{current}/{max}";
     }
 
-    void ShowDamagePopup(byte damage)
+    private void ShowDamagePopup(byte damage)
     {
-        // Crée un popup de dégâts
-        GameObject popup = Instantiate(
-            damagePopupPrefab,
-            enemyHealth.transform.position + Vector3.up * 2,
-            Quaternion.identity,
-            transform // Parent au canvas
-        );
+        if (damagePopupPrefab == null) return;
 
-        // Configure le texte
-        TMP_Text damageText = popup.GetComponent<TMP_Text>();
-        damageText.text = $"-{damage}";
+        Vector3 popupPosition = enemyHealth.transform.position + Vector3.up * 2;
+        GameObject popup = Instantiate(damagePopupPrefab, popupPosition, Quaternion.identity, transform);
 
-        // Animation automatique (ajoute un composant DamagePopup au prefab)
-        popup.GetComponent<DamagePopup>().Initialize();
+        if (popup.TryGetComponent<TMP_Text>(out var damageText))
+        {
+            damageText.text = $"-{damage}";
+        }
+
+        if (popup.TryGetComponent<DamagePopup>(out var damagePopup))
+        {
+            damagePopup.Initialize();
+        }
     }
 }
