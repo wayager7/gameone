@@ -3,32 +3,54 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class moove: MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
-    //
-    public float moveSpeed = 5f; // Vitesse de déplacement
-    public float minX = -5f;     // Limite gauche
-    public float maxX = 5f;      // Limite droite
+    #region Movement Settings
+    [Header("Movement Configuration")]
+    [SerializeField] private float _moveSpeed = 5f;
+    [SerializeField] private float _minX = -5f;
+    [SerializeField] private float _maxX = 5f;
+    #endregion
 
-    // Start is called before the first frame update
-    void Start()
-    {}
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        //// Déplacement gauche/droite
-        //float horizontal = Input.GetAxis("Horizontal"); // Flèches gauche/droite
-        //transform.position += new Vector3(horizontal * moveSpeed * Time.deltaTime, 0f, 0f);
-        
-        // Déplacement gauche/droite
-        float horizontal = Input.GetAxis("Horizontal"); // Flèches gauche/droite
-        Vector3 newPosition = transform.position + new Vector3(horizontal * moveSpeed * Time.deltaTime, 0f, 0f);
+        HandleHorizontalMovement();
+    }
 
-        // Limitation de la position avec Mathf.Clamp
-        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+    /// <summary>
+    /// Handles horizontal input and movement constraints
+    /// </summary>
+    private void HandleHorizontalMovement()
+    {
+        float horizontalInput = GetHorizontalInput();
+        Vector3 newPosition = CalculateNewPosition(horizontalInput);
+        UpdatePosition(newPosition);
+    }
 
-        // Appliquer la nouvelle position
+    /// <summary>
+    /// Gets normalized horizontal input
+    /// </summary>
+    private float GetHorizontalInput()
+    {
+        return Input.GetAxis("Horizontal");
+    }
+
+    /// <summary>
+    /// Calculates clamped position based on input
+    /// </summary>
+    private Vector3 CalculateNewPosition(float horizontalInput)
+    {
+        Vector3 position = transform.position;
+        position.x += horizontalInput * _moveSpeed * Time.deltaTime;
+        position.x = Mathf.Clamp(position.x, _minX, _maxX);
+        return position;
+    }
+
+    /// <summary>
+    /// Applies the final calculated position
+    /// </summary>
+    private void UpdatePosition(Vector3 newPosition)
+    {
         transform.position = newPosition;
     }
 }
