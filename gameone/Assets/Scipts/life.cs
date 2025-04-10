@@ -1,9 +1,13 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class barredevie : MonoBehaviour
 {
+    public UnityEvent<byte, byte> OnHealthChanged; // current, max
+    public UnityEvent<byte> OnDamageTaken; // montant des dégâts
+
     [Header("Paramètres de Santé")]
     [SerializeField] private byte maxLife = 200;
     [SerializeField] private byte currentLife;
@@ -33,6 +37,9 @@ public class barredevie : MonoBehaviour
     {
         byte previousLife = currentLife;
         currentLife = (byte)Mathf.Clamp(currentLife - damage, 0, maxLife);
+
+        OnHealthChanged?.Invoke(currentLife, maxLife);
+        OnDamageTaken?.Invoke(damage);
 
         Debug.Log(
             $"<color=orange>[DEGATS]</color> {gameObject.name}\n" +
