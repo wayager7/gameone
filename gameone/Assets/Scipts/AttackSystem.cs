@@ -4,64 +4,138 @@ using UnityEngine;
 
 public class AttackSystem : MonoBehaviour
 {
-    [Header("Paramètres de Base")]
-    [SerializeField] private KeyCode attackKey = KeyCode.Space;
-    [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private int attackDamage = 10;
-    [SerializeField] private float attackCooldown = 1f;
-    [SerializeField] private LayerMask enemyLayer;
+    [Header("Base Settings")]
+    [SerializeField] private KeyCode _attackKey = KeyCode.Space;
+    [SerializeField] private float _attackRange = 1.5f;
+    [SerializeField] private int _attackDamage = 10;
+    [SerializeField] private float _attackCooldown = 1f;
+    [SerializeField] private LayerMask _enemyLayer;
+    [SerializeField] private Transform _attackPoint;
 
-    [Header("Point d'Attaque")]
-    [SerializeField] private Transform attackPoint;
+    private float _nextAttackTime;
+    private bool _canAttack = true;
 
-    private float nextAttackTime;
-
-    void Update()
+    private void Update()
     {
-        if (Time.time >= nextAttackTime && Input.GetKeyDown(attackKey))
+        CheckAttackInput();
+    }
+
+    /// <summary>
+    /// Handles attack input processing and cooldown management
+    /// </summary>
+    private void CheckAttackInput()
+    {
+        if (!_canAttack || Time.time < _nextAttackTime) return;
+
+        if (Input.GetKeyDown(_attackKey))
         {
-            LaunchAttack();
-            nextAttackTime = Time.time + attackCooldown;
+            TryExecuteAttack();
         }
     }
 
-    private void LaunchAttack()
+    /// <summary>
+    /// Attempts to perform an attack if valid conditions are met
+    /// </summary>
+    private void TryExecuteAttack()
     {
-        Debug.Log($"<color=green>[ATTAQUE]</color> {gameObject.name} attaque à {Time.time:F2}s");
+        _canAttack = false;
+        ExecuteAttack();
+        UpdateCooldown();
+    }
 
-        Collider[] hitTargets = Physics.OverlapSphere(
-            attackPoint.position,
-            attackRange,
-            enemyLayer
+    /// <summary>
+    /// Main attack execution logic
+    /// </summary>
+    private void ExecuteAttack()
+    {
+        LogAttackAttempt();
+        var targets = DetectTargets();
+        ProcessDetectedTargets(targets);
+    }
+
+    /// <summary>
+    /// Detects valid targets within attack range
+    /// </summary>
+    private Collider[] DetectTargets()
+    {
+        return Physics.OverlapSphere(
+            _attackPoint.position,
+            _attackRange,
+            _enemyLayer
         );
+    }
 
-        foreach (Collider target in hitTargets)
+    /// <summary>
+    /// Processes all detected targets and applies damage
+    /// </summary>
+    private void ProcessDetectedTargets(Collider[] targets)
+    {
+        foreach (var target in targets)
         {
-            ProcessHit(target);
+            if (TryGetHealthComponent(target, out var healthComponent))
+            {
+                ApplyDamage(healthComponent);
+                LogDamageImpact(target, healthComponent);
+            }
         }
     }
 
-    private void ProcessHit(Collider target)
+    /// <summary>
+    /// Attempts to get health component from target
+    /// </summary>
+    private bool TryGetHealthComponent(Component target, out barredevie healthComponent)
     {
-        barredevie targetHealth = target.GetComponent<barredevie>();
-        if (targetHealth != null)
-        {
-            byte initialHealth = targetHealth.GetCurrentLife();
-            targetHealth.TakeDamage((byte)attackDamage);
-
-            Debug.Log(
-                $"<color=yellow>[IMPACT]</color> Cible touchée: {target.name}\n" +
-                $"PV initiaux: {initialHealth} | " +
-                $"Dégâts infligés: {attackDamage} | " +
-                $"PV restants: {targetHealth.GetCurrentLife()}"
-            );
-        }
+        healthComponent = target.GetComponent<barredevie>();
+        return healthComponent != null;
     }
 
-    void OnDrawGizmosSelected()
+    /// <summary>
+    /// Applies damage to a valid health component
+    /// </summary>
+    private void ApplyDamage(barredevie healthComponent)
     {
-        if (attackPoint == null) return;
+        healthComponent.TakeDamage((byte)_attackDamage);
+    }
+
+    /// <summary>
+    /// Updates attack cooldown timer
+    /// </summary>
+    private void UpdateCooldown()
+    {
+        _nextAttackTime = Time.time + _attackCooldown;
+        _canAttack = true;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        DrawAttackRangeGizmo();
+    }
+
+    /// <summary>
+    /// Visualizes attack range in editor
+    /// </summary>
+    private void DrawAttackRangeGizmo()
+    {
+        if (!_attackPoint) return;
+
         Gizmos.color = new Color(1, 0, 0, 0.4f);
-        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+        Gizmos.DrawWireSphere(_attackPoint.position, _attackRange);
     }
+
+    #region Debug Methods
+    private void LogAttackAttempt()
+    {
+        Debug.Log($"<color=green>[ATTACK]</color> {gameObject.name} attacking at {Time.time:F2}s");
+    }
+
+    private void LogDamageImpact(Component target, barredevie healthComponent)
+    {
+        Debug.Log(
+            $"<color=yellow>[IMPACT]</color> Target hit: {target.name}\n" +
+            $"Initial HP: {healthComponent.GetCurrentLife() + _attackDamage} | " +
+            $"Damage dealt: {_attackDamage} | " +
+            $"Remaining HP: {healthComponent.GetCurrentLife()}"
+        );
+    }
+    #endregion
 }
